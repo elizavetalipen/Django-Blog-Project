@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'homepage_style.css' %}">
+
+{% block content %}
+
+<!--На главной странице будут категории для статей-->
+<div class="container mt-5">
+  <div class="row">
+    {% for cathegory in cathegories %}
+      <div class="col-md-6 col-lg-6 mb-4">
+        <div class="card">
+          <img src="{{ cathegory.cathegory_image.url }}" class="card-img-top" alt="{{ cathegory.title }}">
+          <div class="card-body">
+            <h5 class="card-title">
+              <a href="{% url 'cathegory' pk=cathegory.pk %}">{{ cathegory.title }}</a></h5>
+            <p class="card-text">{{ cathegory.description|slice:":100" }}</p>
+            <a href="#" class="btn btn-primary">Related articles</a>
+          </div>
+        </div>
+      </div>
+      <!-- По две карточки в строке-->
+      {% if forloop.counter|divisibleby:2 %}
+        </div><div class="row">
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

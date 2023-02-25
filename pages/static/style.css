@@ -1,0 +1,24 @@
+
+.navbar {
+  border-bottom: 1px solid #ccc;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.navbar-nav .nav-link {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+
+  .navbar-brand {
+    display: none;
+  }
+
+  .navbar-nav {
+    margin: auto;
+  }
+}

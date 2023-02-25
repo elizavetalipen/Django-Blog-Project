@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+    {% for post in posts %}
+        <div class="post">
+            <div class="post_details">
+                <h1>
+                    <a href="{% url 'post' pk=post.pk %}">{{ post.title }}</a>
+                </h1>
+                <h5>{{ post.published }}</h5>
+                <h4>{{ post.user }}</h4>
+            </div>
+            <p class="limited_paragraph">{{ post.content|slice:":300" }}</p>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}
