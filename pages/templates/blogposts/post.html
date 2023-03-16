@@ -8,8 +8,16 @@
                     <img src="/media/{{ post.post_image }}" class="card-img-top img-fluid">
                     <h1>{{ post.title }}</h1>
                     <h5>{{ post.published }}</h5>
-                    <!--Добавить ссылку на профиль автора--> 
-                    <h4>{{ post.user.username }}</h4>
+                    <h4>{{ post.user.username }}
+                        {% if request.user == post.user %}
+                        <a href="#">
+                          <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a href="#">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                        {% endif %}
+                    </h4>
                 </div>
             <p>{{ post.content|linebreaksbr }}</p>
         </div>

@@ -1,6 +1,7 @@
 
 .navbar {
-  border-bottom: 1px solid #ccc;
+  background-color: #2e4352;
+  border-bottom: 0.5px solid #2e4352;
 }
 
 .navbar-brand {

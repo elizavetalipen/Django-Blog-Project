@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="cover-image" style="background-image: url({{user_info.cover_image.url}}); 
+          width: 100%; margin-top: 4%;
+          height: 200px; background-size: cover; background-position: center;">
+            <div class="avatar-image">
+              <img src="{{ user_info.avatar_image.url }}" alt="Avatar" style="border-radius: 50%; 
+              width: 20%; height: 64%; position: absolute; bottom: -36%; left: 50%; 
+              transform: translateX(-50%);border: 5px solid white;
+              object-fit: cover; object-position: center;">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-5">
+        <div class="col-md-12">
+          <div class="text-center">
+            <h3 class="text-center" style="margin-top: 4%;">{{ user_info.user.username }}</h3>
+            {% if request.user == user_info.user %}
+            <a href="{% url 'edit_profile' %}">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            {% endif %}
+          </div>
+          <p class="text-center">{{ user_info.bio }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card" style="width:100%; margin-top: 8%">
+        <div class="card-header">
+          Articles
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for post in user_posts %}
+          <li class="list-group-item">
+            <a href="{% url 'post' post.pk %}">{{ post.title }}</a>
+          </li>
+          {% endfor %}
+          {% if request.user == user_info.user %}
+          <div class="text-center">
+            <a href="{% url 'newpost' %}" class="btn btn-primary">New Article</a>
+          </div>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
