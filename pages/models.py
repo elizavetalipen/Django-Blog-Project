@@ -38,7 +38,7 @@ class Cathegory(models.Model):
 
 
 class Post_Cathegory(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_cathegory')
     cathegory = models.ForeignKey(Cathegory, on_delete=models.CASCADE)
 
 
@@ -49,7 +49,7 @@ class Tag(models.Model):
 
 
 class Post_Tag(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE,  related_name='post_tag')
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 

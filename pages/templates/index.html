@@ -1,7 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
-
-<link rel="stylesheet" href="{% static 'homepage_style.css' %}">
 
 {% block content %}
 
@@ -16,7 +13,7 @@
             <h5 class="card-title">
               <a href="{% url 'cathegory' pk=cathegory.pk %}">{{ cathegory.title }}</a></h5>
             <p class="card-text">{{ cathegory.description|slice:":100" }}</p>
-            <a href="#" class="btn btn-primary">Related articles</a>
+            <a href="{% url 'cathegory' pk=cathegory.pk %}" class="btn btn-primary">Related articles</a>
           </div>
         </div>
       </div>

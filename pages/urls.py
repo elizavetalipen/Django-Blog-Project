@@ -8,7 +8,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('profile/', user_profile_view, name='profile'),
-    path('profile/edit', edit_profile_view, name='edit_profile'),
+    path('profile/edit/', edit_profile_view, name='edit_profile'),
     # список всех постов
     path('all_posts/', all_posts_view, name='all_posts'),
     # читать пост полностью
@@ -16,7 +16,8 @@ urlpatterns = [
     # форма добавления поста (добавить стили и категорию, теги)
     path('post/new/', newpost_view, name='newpost'),
     # форма редактирования поста
-    #path('post/<int:pk>/edit/', editpost_view, name='editpost'),
+    path('post/<int:pk>/edit/', edit_post_view, name='edit_post'),
+    path('post/<int:pk>/delete/', delete_post_view, name='delete_post'),
     # страница категории
     path('cathegory/<int:pk>/', cathegory_view, name='cathegory'),
 ]

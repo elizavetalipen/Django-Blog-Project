@@ -6,8 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import redirect
-from .models import Post, Cathegory, UserInfo
-from .forms import NewPostForm, NewUserForm, UserProfileEditForm, UserEditForm, LoginForm
+from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag
+from .forms import PostForm, NewUserForm, UserProfileEditForm, UserEditForm, LoginForm
 
 
 def home_view(request):
@@ -24,29 +24,88 @@ def all_posts_view(request):
 # читать пост полностью
 def post_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blogposts/post.html', {'post': post})
+    tags = post.post_tag.all()
+    return render(request, 'blogposts/post.html', {'post': post, 'tags': tags})
 
 # написать новый пост
 def newpost_view(request):
     if request.method == "POST":
-        form = NewPostForm(request.POST)
+        form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
             post.published = timezone.now()
             post.save()
+            # связываем этот пост с категорией
+            cat = form.cleaned_data['category']
+            post_cat = Post_Cathegory(post=post, cathegory_id=cat.id)
+            post_cat.save()
+
+            # парсим теги из ввода пользователя
+            tags = form.cleaned_data['tags']
+            tag_list = tags.split(',')
+            
+            for tag_title in tag_list:
+                tag_title = tag_title.strip()
+                if tag_title:
+                    tag, created = Tag.objects.get_or_create(title=tag_title)
+                    post_tag = Post_Tag(post=post, tag=tag)
+                    post_tag.save()
             return redirect('post', pk=post.pk)
     else:
-        form = NewPostForm()
+        form = PostForm()
     return render(request, 'blogposts/post_add.html', {'form': form})
+
+#редактировать пост
+def edit_post_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.published_date = timezone.now()
+            post.save()
+            # категория
+            category = form.cleaned_data['category']
+            post_category, created = Post_Cathegory.objects.get_or_create(post=post)
+            post_category.category = category
+            post_category.save()
+            # добавим новые теги к существующим и удалим те, которые убрали
+            tags = form.cleaned_data['tags']
+            tag_list = tags.split(',')
+            post_tags = []
+            for tag_title in tag_list:
+                tag_title = tag_title.strip()
+                if tag_title:
+                    tag, created = Tag.objects.get_or_create(title=tag_title)
+                    post_tag, created = Post_Tag.objects.get_or_create(post=post, tag=tag)
+                    post_tags.append(post_tag)
+            post.post_tag.exclude(id__in=[tag.id for tag in post_tags]).delete()
+            return redirect('post', pk=post.pk)
+    else: 
+        # предварительно заполняем поля категории и тегов 
+        post_cat = Post_Cathegory.objects.filter(post=post).first()
+        initial_cat = post_cat.cathegory if post_cat else None
+        post_tags = Post_Tag.objects.filter(post=post)
+        initial_tags = [post_tag.tag.title for post_tag in post_tags]
+        initial_data = {'category': initial_cat, 'tags': ','.join(initial_tags)}
+        form = PostForm(instance=post, initial=initial_data)
+    return render(request, 'blogposts/post_edit.html', {'form': form})
+
+
+def delete_post_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.delete()
+    return redirect('profile')
 
 
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
@@ -106,6 +165,6 @@ def edit_profile_view(request):
 
 
 def cathegory_view(request, pk):
-    posts = Post.objects.order_by('published')
     cathegory = get_object_or_404(Cathegory, pk=pk)
+    posts = Post.objects.filter(post_cathegory__cathegory=cathegory).order_by('published')
     return render(request, 'cathegories.html', {'cathegory': cathegory, 'posts':posts})

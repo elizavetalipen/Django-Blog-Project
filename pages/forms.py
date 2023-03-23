@@ -1,17 +1,18 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Post, Comment, UserInfo
+from .models import Post, Comment, UserInfo, Cathegory, Tag
 from django.contrib.auth.models import User 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Div, Field, Row, Column
 
 
-class NewPostForm(forms.ModelForm):
+class PostForm(forms.ModelForm):
+    category = forms.ModelChoiceField(queryset=Cathegory.objects.all())
     tags = forms.CharField(max_length=100)
 
     class Meta:
         model = Post
-        fields = ('title', 'content', 'post_image', 'tags')
+        fields = ('title', 'content', 'post_image', 'category','tags')
         widgets = {
             'content': forms.Textarea(attrs={'class': 'form-control', 'style': 'height: 300px'}),
         }
