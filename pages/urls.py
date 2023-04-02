@@ -7,7 +7,7 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
-    path('profile/', user_profile_view, name='profile'),
+    path('profile/<int:pk>/', user_profile_view, name='profile'),
     path('profile/edit/', edit_profile_view, name='edit_profile'),
     # список всех постов
     path('all_posts/', all_posts_view, name='all_posts'),
@@ -20,4 +20,6 @@ urlpatterns = [
     path('post/<int:pk>/delete/', delete_post_view, name='delete_post'),
     # страница категории
     path('cathegory/<int:pk>/', cathegory_view, name='cathegory'),
+    path('comment/<int:pk>/delete/', delete_comment_view, name='delete_comment'),
+    path('comment/<int:pk>/edit/', edit_comment_view, name='edit_comment'),
 ]

@@ -60,9 +60,5 @@ class Comment(models.Model):
     published = models.DateTimeField(default=timezone.now)
     edited = models.DateTimeField(blank=True, null=True)
 
-    def update_edited_date(self):
-        self.edited = timezone.now()
-        self.save()
-
 
 

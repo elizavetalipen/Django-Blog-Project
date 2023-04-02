@@ -6,8 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import redirect
-from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag
-from .forms import PostForm, NewUserForm, UserProfileEditForm, UserEditForm, LoginForm
+from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag, Comment
+from .forms import PostForm, NewUserForm, UserProfileEditForm, UserEditForm, LoginForm, CommentForm
+from django.http import JsonResponse
 
 
 def home_view(request):
@@ -25,7 +26,16 @@ def all_posts_view(request):
 def post_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     tags = post.post_tag.all()
-    return render(request, 'blogposts/post.html', {'post': post, 'tags': tags})
+    post_comments = Comment.objects.filter(post=post)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.user = request.user
+        comment.save()
+        form = CommentForm()
+    return render(request, 'blogposts/post.html', {'post': post, 'tags': tags, 
+                                                   'comments':post_comments,'form':form})
 
 # написать новый пост
 def newpost_view(request):
@@ -100,6 +110,31 @@ def delete_post_view(request, pk):
     return redirect('profile')
 
 
+@login_required
+def delete_comment_view(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    post_pk = comment.post.pk
+    comment.delete()
+    return redirect('post', pk=post_pk)
+
+
+@login_required
+def edit_comment_view(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    post_pk = comment.post.pk
+    if comment.user == request.user:
+        if request.method == 'POST':
+            form = CommentForm(request.POST, instance=comment)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.edited = timezone.now()
+                comment.save()
+                return redirect('post', pk=post_pk)
+        else:
+            form = CommentForm(instance=comment)
+    return render(request, 'blogposts/edit_comment.html', {'form': form, 'comment': comment})
+
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
@@ -142,9 +177,10 @@ def logout_view(request):
 
 
 @login_required
-def user_profile_view(request):
-    user_info = UserInfo.objects.get(user=request.user)
-    user_posts = Post.objects.filter(user=request.user)
+def user_profile_view(request, pk):
+    user_info = get_object_or_404(UserInfo, user__pk=pk)
+    #user_info = UserInfo.objects.get(user=request.user)
+    user_posts = Post.objects.filter(user=user_info.user)
     return render(request, 'profile/user_profile.html', {'user_info': user_info,'user_posts': user_posts})
 
 
