@@ -3,11 +3,13 @@ from django.views.generic import TemplateView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import redirect
 from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag, Comment
-from .forms import PostForm, NewUserForm, UserProfileEditForm, UserEditForm, LoginForm, CommentForm
+from .forms import PostForm, NewUserForm, UserProfileEditForm
+from .forms import ChangePasswordForm, UserEditForm, LoginForm, CommentForm
 from django.http import JsonResponse
 
 
@@ -37,6 +39,7 @@ def post_view(request, pk):
     return render(request, 'blogposts/post.html', {'post': post, 'tags': tags, 
                                                    'comments':post_comments,'form':form})
 
+
 # написать новый пост
 def newpost_view(request):
     if request.method == "POST":
@@ -65,6 +68,7 @@ def newpost_view(request):
     else:
         form = PostForm()
     return render(request, 'blogposts/post_add.html', {'form': form})
+
 
 #редактировать пост
 def edit_post_view(request, pk):
@@ -179,7 +183,6 @@ def logout_view(request):
 @login_required
 def user_profile_view(request, pk):
     user_info = get_object_or_404(UserInfo, user__pk=pk)
-    #user_info = UserInfo.objects.get(user=request.user)
     user_posts = Post.objects.filter(user=user_info.user)
     return render(request, 'profile/user_profile.html', {'user_info': user_info,'user_posts': user_posts})
 
@@ -189,15 +192,39 @@ def edit_profile_view(request):
     if request.method == 'POST':
         account_form =  UserEditForm(request.POST, instance=request.user)
         profile_form =  UserProfileEditForm(request.POST, request.FILES, instance=request.user.userinfo)
-        if profile_form.is_valid() and account_form.is_valid():
+        if account_form.is_valid() and profile_form.is_valid():
             profile_form.save()
             account_form.save()
-            return redirect('profile')
+            return redirect('profile', pk=request.user.pk)
     else:
         profile_form = UserProfileEditForm(instance=request.user.userinfo)
         account_form = UserEditForm(instance=request.user)
     return render(request, 'profile/edit_profile.html', {'profile_form': profile_form, 
                                                          'account_form': account_form})
+
+
+@login_required
+def change_password_view(request):
+    if request.method == 'POST':
+        form = ChangePasswordForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('profile', pk=request.user.pk)
+    else:
+        form = ChangePasswordForm(request.user)
+    return render(request, 'profile/change_password.html', {'form': form})
+
+
+def delete_profile_view(request):
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        user = authenticate(username=request.user.username, password=password)
+        if user is not None:
+            user.delete()
+            return redirect('home')
+    return render(request, 'profile/delete_profile.html')
 
 
 def cathegory_view(request, pk):

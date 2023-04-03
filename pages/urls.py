@@ -7,8 +7,11 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    # профиль (личный кабинет)
     path('profile/<int:pk>/', user_profile_view, name='profile'),
     path('profile/edit/', edit_profile_view, name='edit_profile'),
+    path('profile/delete/', delete_profile_view, name='delete_profile'),
+    path('profile/change_password/', change_password_view, name='change_password'),
     # список всех постов
     path('all_posts/', all_posts_view, name='all_posts'),
     # читать пост полностью

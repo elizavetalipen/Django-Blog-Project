@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import PasswordChangeForm
 from .models import Post, Comment, UserInfo, Cathegory, Tag
 from django.contrib.auth.models import User 
 from crispy_forms.helper import FormHelper
@@ -76,8 +77,7 @@ class UserProfileEditForm(forms.ModelForm):
         model = UserInfo
         fields = ['avatar_image', 'cover_image', 'bio']
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 10}),
-        }
+            'bio': forms.Textarea(attrs={'rows': 10}),}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -107,9 +107,29 @@ class UserEditForm(forms.ModelForm):
             Div(
             Field('username', css_class='form-control col-md-6'),
             Field('email', css_class='form-control col-md-6'),
-            css_class='form-group'
+            css_class='form-group')
+        )
+
+
+class ChangePasswordForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].widget = forms.PasswordInput()
+        self.fields['new_password1'].widget = forms.PasswordInput()
+        self.fields['new_password2'].widget = forms.PasswordInput()
+
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Change Password'))
+        self.helper.layout = Layout(
+            Div(
+                Field('old_password', css_class='form-control'),
+                Field('new_password1', css_class='form-control'),
+                Field('new_password2', css_class='form-control'),
+                css_class='form-group'
             )
         )
+
 
 
 class CommentForm(forms.ModelForm):
