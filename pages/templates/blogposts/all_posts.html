@@ -1,20 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container mt-5">
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
     {% for post in posts %}
+        <div class="card">
+        <div class="card-body">
         <div class="post">
             <div class="post_details">
                 <h1>
                     <a href="{% url 'post' pk=post.pk %}">{{ post.title }}</a>
                 </h1>
-                <h5>{{ post.published }}</h5>
-                <h4>{{ post.user }}</h4>
+                <h6>{{ post.published }}</h6>
+                <h5><a href="{% url 'profile' pk=post.user.pk %}">
+                    {{ post.user.username }}</a></h5>
             </div>
-            <p class="limited_paragraph">{{ post.content|slice:":300" }}</p>
+            <p class="card-text">{{ post.content|slice:":400" }}...</p>
+        </div>
+        </div>
         </div>
     {% endfor %}
     </div>
+</div>
 </div>
 {% endblock %}

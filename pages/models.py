@@ -19,6 +19,7 @@ class Post(models.Model):
     post_image = models.ImageField(upload_to=f'images/postimg/', blank=True)
     published = models.DateTimeField(default=timezone.now)
     edited = models.DateTimeField(blank=True, null=True)
+    likes = models.IntegerField(default=0)  # add this field to track likes
 
     def __str__(self):
         return self.title
@@ -30,7 +31,7 @@ class Post(models.Model):
 
 class Cathegory(models.Model):
     title = models.CharField(max_length=50)
-    description = models.CharField(max_length=300)
+    description =  models.TextField()
     cathegory_image = models.ImageField(upload_to='images')
 
     def __str__(self):

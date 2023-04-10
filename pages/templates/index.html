@@ -8,11 +8,14 @@
     {% for cathegory in cathegories %}
       <div class="col-md-6 col-lg-6 mb-4">
         <div class="card">
-          <img src="{{ cathegory.cathegory_image.url }}" class="card-img-top" alt="{{ cathegory.title }}">
+          <img src="{{ cathegory.cathegory_image.url }}" class="card-img-top" 
+          style=" object-fit: cover;
+          object-position: center; height:340px;"
+          alt="{{ cathegory.title }}">
           <div class="card-body">
             <h5 class="card-title">
               <a href="{% url 'cathegory' pk=cathegory.pk %}">{{ cathegory.title }}</a></h5>
-            <p class="card-text">{{ cathegory.description|slice:":100" }}</p>
+            <p class="card-text">{{ cathegory.description|slice:":300" }}</p>
             <a href="{% url 'cathegory' pk=cathegory.pk %}" class="btn btn-primary">Related articles</a>
           </div>
         </div>

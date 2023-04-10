@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User 
+from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import redirect
@@ -40,7 +42,14 @@ def post_view(request, pk):
                                                    'comments':post_comments,'form':form})
 
 
+def like_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.likes += 1
+    post.save()
+    return redirect('post', pk=post.pk)
+
 # написать новый пост
+@login_required
 def newpost_view(request):
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
@@ -71,6 +80,7 @@ def newpost_view(request):
 
 
 #редактировать пост
+@login_required
 def edit_post_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
@@ -110,8 +120,9 @@ def edit_post_view(request, pk):
 
 def delete_post_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    user_pk = post.user.pk
     post.delete()
-    return redirect('profile')
+    return redirect('profile', pk=user_pk)
 
 
 @login_required
@@ -158,16 +169,23 @@ def register_view(request):
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if form.is_valid():
-            form.save()
             uname = form.cleaned_data['username']
+            email = form.cleaned_data['email']
             psw = form.cleaned_data['password1']
-            user = authenticate(username=uname, password=psw)
-            if user is not None:
-                login(request, user)
-                # по умолчанию создадется пустой профиль
-                profile = UserInfo.objects.create(user=user, avatar_image='images/userimg/blank_img.png', 
-                                                  cover_image='images/userimg/blank_cover.jpg',bio='...',)
-                return redirect('/')
+            # проверка уникальности ника и почты
+            if User.objects.filter(Q(username=uname)).exists():
+                form.add_error('username', "A user with that username already exists.")
+            elif User.objects.filter(Q(email=email)).exists():
+                form.add_error('email', "User with such email already exists!")
+            else:
+                form.save()
+                user = authenticate(username=uname, password=psw)
+                if user is not None:
+                    login(request, user)
+                    # по умолчанию создадется пустой профиль
+                    profile = UserInfo.objects.create(user=user, avatar_image='images/userimg/blank_img.png', 
+                                                    cover_image='images/userimg/blank_cover.jpg',bio='...',)
+                    return redirect('/')
         else:
             print(form.errors)
     else:
@@ -180,7 +198,6 @@ def logout_view(request):
 	return redirect("home")
 
 
-@login_required
 def user_profile_view(request, pk):
     user_info = get_object_or_404(UserInfo, user__pk=pk)
     user_posts = Post.objects.filter(user=user_info.user)
@@ -217,6 +234,7 @@ def change_password_view(request):
     return render(request, 'profile/change_password.html', {'form': form})
 
 
+@login_required
 def delete_profile_view(request):
     if request.method == 'POST':
         password = request.POST.get('password')

@@ -131,7 +131,6 @@ class ChangePasswordForm(PasswordChangeForm):
         )
 
 
-
 class CommentForm(forms.ModelForm):
 
     class Meta:

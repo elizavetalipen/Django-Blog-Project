@@ -16,6 +16,7 @@ urlpatterns = [
     path('all_posts/', all_posts_view, name='all_posts'),
     # читать пост полностью
     path('post/<int:pk>/', post_view, name='post'),
+    path('post/<int:pk>/like/', like_view, name='like'),
     # форма добавления поста (добавить стили и категорию, теги)
     path('post/new/', newpost_view, name='newpost'),
     # форма редактирования поста
