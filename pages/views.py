@@ -22,8 +22,12 @@ def home_view(request):
 
 # список всех постов
 def all_posts_view(request):
-    posts = Post.objects.order_by("published")
-    return render(request, 'blogposts/all_posts.html', {'posts': posts})
+    query = request.GET.get('q') # запрос из search bar
+    if query:
+        posts = Post.objects.filter(Q(title__icontains=query)).order_by("published")
+    else:
+        posts = Post.objects.order_by("published")[:20]
+    return render(request, 'blogposts/all_posts.html', {'posts': posts[:10]})
 
 
 # читать пост полностью
@@ -248,4 +252,7 @@ def delete_profile_view(request):
 def cathegory_view(request, pk):
     cathegory = get_object_or_404(Cathegory, pk=pk)
     posts = Post.objects.filter(post_cathegory__cathegory=cathegory).order_by('published')
-    return render(request, 'cathegories.html', {'cathegory': cathegory, 'posts':posts})
+    query = request.GET.get('q') # запрос из search bar
+    if query:
+        posts = posts.filter(Q(title__icontains=query))
+    return render(request, 'cathegories.html', {'cathegory': cathegory, 'posts':posts[:20]})

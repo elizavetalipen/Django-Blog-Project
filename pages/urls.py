@@ -4,6 +4,7 @@ from .views import *
 
 urlpatterns = [
     path('', home_view, name='home'),
+    # регистрация и вход
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
@@ -16,10 +17,9 @@ urlpatterns = [
     path('all_posts/', all_posts_view, name='all_posts'),
     # читать пост полностью
     path('post/<int:pk>/', post_view, name='post'),
+    # действия с постами
     path('post/<int:pk>/like/', like_view, name='like'),
-    # форма добавления поста (добавить стили и категорию, теги)
     path('post/new/', newpost_view, name='newpost'),
-    # форма редактирования поста
     path('post/<int:pk>/edit/', edit_post_view, name='edit_post'),
     path('post/<int:pk>/delete/', delete_post_view, name='delete_post'),
     # страница категории

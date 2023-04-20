@@ -2,8 +2,20 @@
 
 {% block content %}
 <div class="container mt-5">
-<div class="row">
+    <div class="row">
     <div class="col-md-8">
+        <form class="form-inline my-2 my-lg-0" method="GET">
+            <div class="input-group">
+                <input class="form-control mr-sm-2" type="search" placeholder="Article title..." 
+                aria-label="Search" name="q">
+                <div class="input-group-append">
+                    <button class="btn-primary" type="submit">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    <!-- posts -->
     {% for post in posts %}
         <div class="card">
         <div class="card-body">

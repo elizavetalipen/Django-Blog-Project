@@ -1,8 +1,8 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import UserInfo, Post, Comment, Cathegory
-from .forms import NewUserForm, LoginForm
+from .models import UserInfo, Post, Comment, Cathegory, Tag, Post_Tag, Post_Cathegory
+from .forms import NewUserForm, LoginForm, PostForm, UserEditForm
 from django.middleware import csrf
 from django.utils import timezone
 
@@ -102,7 +102,7 @@ class TestRegister(TestCase):
 class TestUserProfile(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser',
-            email='testuser@example.com',password='testpass123')
+            email='testuser@gmail.com',password='testpass123')
         
         self.profile = UserInfo.objects.create(user=self.user, avatar_image='images/userimg/blank_img.png', 
                                                     cover_image='images/userimg/blank_cover.jpg',bio='...',)    
@@ -112,12 +112,51 @@ class TestUserProfile(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'profile/user_profile.html')
         self.assertContains(response, self.profile.bio)
+
+    def test_password_change(self):
+        self.client.login(username='testuser', password='testpass123')
+        valid_data = {
+            'old_password': 'testpass123',
+            'new_password1': 'newtestpass123',
+            'new_password2': 'newtestpass123'
+        }
+        invalid_data = {
+            'old_password': 'wrongpass123',
+            'new_password1': 'newtestpass',
+            'new_password2': 'newtestpass'
+        }
+        # успешная смена пароля
+        success_response = self.client.post(reverse('change_password'),valid_data)
+        self.assertEqual(success_response.status_code, 302)
+        self.assertRedirects(success_response, reverse('profile', kwargs={'pk': self.user.pk}))
+        self.assertTrue(User.objects.get(username='testuser').check_password('newtestpass123'))
+        # неуспешная смена пароля
+        fail_response = self.client.post(reverse('change_password'),invalid_data)
+        self.assertEqual(fail_response.status_code, 200)
+        self.assertContains(fail_response, 'Your old password was entered incorrectly')
+        self.assertFalse(User.objects.get(username='testuser').check_password('newtestpass'))
     
     def test_edit_profile(self):
-        pass
+        self.client.login(username='testuser', password='testpass123')
+        profile_data = {
+        'username': 'newusername',
+        'email': 'newemail@gmail.com',
+        'bio': 'Updated bio',}
+        response = self.client.post(reverse('edit_profile'),profile_data)
+        self.assertRedirects(response, reverse('profile', args=[self.user.pk]))
+        self.user.refresh_from_db()
+        # проверяем, что введенные данные сохранены
+        self.assertEqual(self.user.username, 'newusername')
+        self.assertEqual(self.user.email, 'newemail@gmail.com')
+        self.assertEqual(self.user.userinfo.bio, 'Updated bio')
 
     def test_delete_profile(self):
-        pass
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.post(reverse('delete_profile'), {'password': 'testpass123'})
+        self.assertRedirects(response, reverse('home'))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(username='testuser').exists())
+        self.assertFalse(UserInfo.objects.filter(user=self.user).exists())
 
     def tearDown(self):
         self.profile.delete()
@@ -127,10 +166,27 @@ class TestUserProfile(TestCase):
 class TestPosts(TestCase):
     def setUp(self):
         self.client = Client()
+
+        category = Cathegory.objects.create(title='Test')
+        tag1 = Tag.objects.create(title='tag1')
+        tag2 = Tag.objects.create(title='tag2')
+        tags = [tag1, tag2]
+        self.post_data =  {
+            'title': 'Good post',
+            'content': 'This is a new post',
+            'tags': 'tag1,tag2',
+            'category': category.id,}
+        
         self.user = User.objects.create_user(
             username='testuser', password='testpass123')
         self.post = Post.objects.create(
-            user=self.user,title='Test post',content='This is a test post',)
+            user=self.user, title='Test post', content='This is a test post')
+        self.post.published = timezone.now()
+
+        post_cat = Post_Cathegory.objects.create(post=self.post, cathegory_id=category.id)
+        for tag in tags:
+            post_tag = Post_Tag(post=self.post, tag=tag)
+
 
     def test_post_view(self):
         response = self.client.get(reverse('post', args=[self.post.pk]))
@@ -139,15 +195,33 @@ class TestPosts(TestCase):
         self.assertContains(response, self.post.content)
         self.assertContains(response, self.post.user)
 
+
     def test_post_delete(self):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.post(reverse('delete_post', args=[self.post.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
 
-    # add tags and cathegory
-    # test post create
-    # test post edit 
+
+    def test_post_create(self):
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.post(reverse('newpost'),self.post_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Post.objects.filter(title='Good post').exists())
+
+
+    def test_post_edit(self):
+        self.client.login(username='testuser', password='testpass123')
+        category2 = Cathegory.objects.create(title='Another Test')
+        tag3 = Tag.objects.create(title='tag3')
+        edited_post_data = { 
+            'title': 'Edited post',
+            'content': 'This is an edited post',
+            'tags': 'tag1,tag3',
+            'category': category2.id,}
+        response = self.client.post(reverse('edit_post', args=[self.post.pk]), edited_post_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Post.objects.filter(title='Edited post').exists())
 
     def tearDown(self):
         self.post.delete()
@@ -187,6 +261,7 @@ class TestComments(TestCase):
         self.comment.delete()
         self.post.delete()
         self.user.delete()
+
 
         
   
