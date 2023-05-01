@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import redirect
-from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag, Comment
+from .models import Post, Cathegory, UserInfo, Post_Cathegory, Post_Tag, Tag, Comment, Like
 from .forms import PostForm, NewUserForm, UserProfileEditForm
 from .forms import ChangePasswordForm, UserEditForm, LoginForm, CommentForm
 from django.http import JsonResponse
@@ -23,10 +23,12 @@ def home_view(request):
 # список всех постов
 def all_posts_view(request):
     query = request.GET.get('q') # запрос из search bar
-    if query:
-        posts = Post.objects.filter(Q(title__icontains=query)).order_by("published")
+    if query and query.startswith("#"):  
+        posts = Post.objects.filter(post_tag__tag__title__icontains=query[1:]).order_by("-published")
+    elif query:
+        posts = Post.objects.filter(Q(title__icontains=query)).order_by("-published")
     else:
-        posts = Post.objects.order_by("published")[:20]
+        posts = Post.objects.order_by("-published")[:10]
     return render(request, 'blogposts/all_posts.html', {'posts': posts[:10]})
 
 
@@ -45,10 +47,18 @@ def post_view(request, pk):
     return render(request, 'blogposts/post.html', {'post': post, 'tags': tags, 
                                                    'comments':post_comments,'form':form})
 
-
+@login_required
 def like_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    post.likes += 1
+    user = request.user
+    like, created = Like.objects.get_or_create(user=user, post=post)
+
+    if not created:
+        like.delete()
+        post.likes -= 1
+    else:
+        post.likes += 1
+
     post.save()
     return redirect('post', pk=post.pk)
 
@@ -251,7 +261,7 @@ def delete_profile_view(request):
 
 def cathegory_view(request, pk):
     cathegory = get_object_or_404(Cathegory, pk=pk)
-    posts = Post.objects.filter(post_cathegory__cathegory=cathegory).order_by('published')
+    posts = Post.objects.filter(post_cathegory__cathegory=cathegory).order_by('-published')
     query = request.GET.get('q') # запрос из search bar
     if query:
         posts = posts.filter(Q(title__icontains=query))

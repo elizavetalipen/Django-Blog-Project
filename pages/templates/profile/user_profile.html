@@ -6,14 +6,9 @@
     <div class="col-md-8">
       <div class="row">
         <div class="col-md-12">
-          <div class="cover-image" style="background-image: url({{user_info.cover_image.url}}); 
-          width: 100%; margin-top: 4%;
-          height: 200px; background-size: cover; background-position: center;">
+          <div class="cover-image" style="background-image: url({{user_info.cover_image.url}});">
             <div class="avatar-image">
-              <img src="{{ user_info.avatar_image.url }}" alt="Avatar" style="border-radius: 50%; 
-              width: 120px; height: 120px; position: absolute; bottom: -36%; left: 50%; 
-              transform: translateX(-50%);border: 5px solid white; margin-bottom: 4%;
-              object-fit: cover; object-position: center;">
+              <img src="{{ user_info.avatar_image.url }}" alt="Avatar" class="avatarImage">
             </div>
           </div>
         </div>
