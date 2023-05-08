@@ -102,7 +102,7 @@ def edit_post_view(request, pk):
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
-            post.published_date = timezone.now()
+            post.edited = timezone.now()
             post.save()
             # категория
             category = form.cleaned_data['category']
@@ -197,8 +197,10 @@ def register_view(request):
                 if user is not None:
                     login(request, user)
                     # по умолчанию создадется пустой профиль
-                    profile = UserInfo.objects.create(user=user, avatar_image='images/userimg/blank_img.png', 
-                                                    cover_image='images/userimg/blank_cover.jpg',bio='...',)
+                    profile = UserInfo.objects.create(user=user, 
+                                avatar_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683463431/blank_img_pgvahm.png', 
+                                cover_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683461446/cld-sample-2.jpg',
+                                bio='Tell us about yourself',)
                     return redirect('/')
         else:
             print(form.errors)

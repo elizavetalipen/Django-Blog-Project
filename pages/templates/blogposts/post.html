@@ -5,7 +5,7 @@
         <div class="col-md-8 col-sm 12">
             <div class="post">
               {% if post.post_image %}
-                <img src="/media/{{ post.post_image }}" 
+                <img src="{{ post.post_image.url }}" 
                 class="card-img-top img-fluid postImage">
               {% endif %}
                 <h1 class="mt-3">{{ post.title }}</h1>

@@ -14,8 +14,10 @@ class TestLoginLogout(TestCase):
         self.logout_url = reverse('logout')
         self.user = User.objects.create_user(username='testuser', email='testuser@test.com', 
                                              password='testpassword123')
-        self.profile = UserInfo.objects.create(user=self.user, avatar_image='images/userimg/blank_img.png', 
-                                                    cover_image='images/userimg/blank_cover.jpg',bio='...',)
+        self.profile = UserInfo.objects.create(user=self.user,
+                                avatar_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683463431/blank_img_pgvahm.png', 
+                                cover_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683461446/cld-sample-2.jpg',
+                                bio='Tell us about yourself')
 
     def test_login_success(self):
         data = {
@@ -90,9 +92,7 @@ class TestRegister(TestCase):
         user = User.objects.filter(username=self.user_data['username']).first()
         profile = UserInfo.objects.filter(user=user).first()
         self.assertIsNotNone(profile)
-        self.assertEqual(profile.avatar_image.name, 'images/userimg/blank_img.png')
-        self.assertEqual(profile.cover_image.name, 'images/userimg/blank_cover.jpg')
-        self.assertEqual(profile.bio, '...')
+        self.assertEqual(profile.bio, 'Tell us about yourself')
 
     def tearDown(self):
         User.objects.filter(username=self.user_data['username']).delete()
@@ -104,8 +104,10 @@ class TestUserProfile(TestCase):
         self.user = User.objects.create_user(username='testuser',
             email='testuser@gmail.com',password='testpass123')
         
-        self.profile = UserInfo.objects.create(user=self.user, avatar_image='images/userimg/blank_img.png', 
-                                                    cover_image='images/userimg/blank_cover.jpg',bio='...',)    
+        self.profile = UserInfo.objects.create(user=self.user, 
+                                avatar_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683463431/blank_img_pgvahm.png', 
+                                cover_image='https://res.cloudinary.com/dnkuhic7l/image/upload/v1683461446/cld-sample-2.jpg',
+                                bio='Tell us about yourself')    
 
     def test_profile_view(self):
         response = self.client.get(reverse('profile', args=[self.user.pk]))
