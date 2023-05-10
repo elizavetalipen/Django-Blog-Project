@@ -21,7 +21,7 @@ class Post(models.Model):
     #post_image = models.ImageField(upload_to=f'images/postimg/', blank=True)
     post_image = CloudinaryField("post_image", blank=True)
     published = models.DateTimeField(default=timezone.now)
-    edited = models.DateTimeField(blank=True)
+    edited = models.DateTimeField(blank=True, null=True)
     likes = models.IntegerField(default=0) 
 
     def __str__(self):
